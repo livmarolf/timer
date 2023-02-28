@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { SettingsContext } from "../context/SettingsContext";
 import CircleProgressBar from "./CircleProgressBar";
 
 export default function Pomodoro() {
+  const settingsInfo = useContext(SettingsContext);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [mode, setMode] = useState("break");
   const [isPaused, setIsPaused] = useState(true);
@@ -9,13 +11,19 @@ export default function Pomodoro() {
   const minutes = Math.floor(secondsLeft / 60);
   let seconds = secondsLeft % 60;
   if (seconds < 10) seconds = "0" + seconds;
-  const totalSeconds = mode === "work" ? 45 * 60 : 15 * 60;
+  const totalSeconds =
+    mode === "work"
+      ? settingsInfo.workDuration * 60
+      : settingsInfo.breakDuration * 60;
   const percentage = (secondsLeft / totalSeconds) * 100;
 
   useEffect(() => {
     function switchMode() {
       const nextMode = mode === "work" ? "break" : "work";
-      const nextTimeInSeconds = (nextMode === "work" ? 45 : 15) * 60;
+      const nextTimeInSeconds =
+        (nextMode === "work"
+          ? settingsInfo.workDuration
+          : settingsInfo.breakDuration) * 60;
 
       setMode(nextMode);
       setSecondsLeft(nextTimeInSeconds);
@@ -34,7 +42,7 @@ export default function Pomodoro() {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [secondsLeft, isPaused, mode]);
+  }, [secondsLeft, isPaused, mode, settingsInfo]);
 
   return (
     <div>
