@@ -1,8 +1,13 @@
-export default function CircleProgressBar({ percentage, time }) {
+const leadingZero = (n) => (n < 10 ? `0${n}` : n);
+
+export default function CircleProgressBar({ duration, progress }) {
   const radius = 85;
   const circleWidth = "200";
-  const dashArray = radius * Math.PI * 2;
-  const dashOffset = dashArray - (dashArray * percentage) / 100;
+
+  const remainingTime = duration * (1 - progress) / 1000;
+  const minutes = leadingZero(Math.floor(remainingTime / 60));
+  const seconds = leadingZero(Math.ceil(remainingTime % 60));
+  const formatterTime = `${minutes}:${seconds}`;
 
   return (
     <div>
@@ -24,10 +29,9 @@ export default function CircleProgressBar({ percentage, time }) {
           strokeWidth="15px"
           r={radius}
           className="circle-progress"
-          style={{
-            strokeDasharray: dashArray,
-            strokeDashoffset: dashOffset,
-          }}
+          pathLength="1"
+          strokeDasharray="1"
+          strokeDashoffset={progress}
           transform={`rotate(-90 ${circleWidth / 2} ${circleWidth / 2})`}
         />
         <text
@@ -37,7 +41,7 @@ export default function CircleProgressBar({ percentage, time }) {
           textAnchor="middle"
           className="circle-text"
         >
-          {time}
+          {formatterTime}
         </text>
       </svg>
     </div>
