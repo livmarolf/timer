@@ -10,7 +10,7 @@ export default function Pomodoro() {
   let seconds = secondsLeft % 60;
   if (seconds < 10) seconds = "0" + seconds;
   const totalSeconds = mode === "work" ? 45 * 60 : 15 * 60;
-  const percentage = Math.round((secondsLeft / totalSeconds) * 100);
+  const percentage = (secondsLeft / totalSeconds) * 100;
 
   useEffect(() => {
     function switchMode() {
