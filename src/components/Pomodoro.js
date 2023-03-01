@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import { SettingsContext } from "../context/SettingsContext";
 import CircleProgressBar from "./CircleProgressBar";
 
@@ -15,20 +15,23 @@ export default function Pomodoro() {
     mode === "work"
       ? settingsInfo.workDuration * 60
       : settingsInfo.breakDuration * 60;
-  const percentage = (secondsLeft / totalSeconds) * 100;
+  const percentage = secondsLeft / totalSeconds;
+
+  const switchMode = useCallback(() => {
+    const nextMode = mode === "work" ? "break" : "work";
+    setMode(nextMode);
+  }, [mode]);
 
   useEffect(() => {
-    function switchMode() {
-      const nextMode = mode === "work" ? "break" : "work";
-      const nextTimeInSeconds =
-        (nextMode === "work"
-          ? settingsInfo.workDuration
-          : settingsInfo.breakDuration) * 60;
+    const nextTimeInSeconds =
+      (mode === "work"
+        ? settingsInfo.workDuration
+        : settingsInfo.breakDuration) * 60;
 
-      setMode(nextMode);
-      setSecondsLeft(nextTimeInSeconds);
-    }
+    setSecondsLeft(nextTimeInSeconds);
+  }, [settingsInfo, mode]);
 
+  useEffect(() => {
     const interval = setInterval(() => {
       if (isPaused) {
         return;
@@ -39,10 +42,10 @@ export default function Pomodoro() {
       }
 
       setSecondsLeft((prev) => prev - 1);
-    }, 100);
+    }, 10);
 
     return () => clearInterval(interval);
-  }, [secondsLeft, isPaused, mode, settingsInfo]);
+  }, [secondsLeft, isPaused, switchMode]);
 
   return (
     <div>

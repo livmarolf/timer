@@ -1,8 +1,6 @@
 export default function CircleProgressBar({ percentage, time }) {
   const radius = 85;
   const circleWidth = "200";
-  const dashArray = radius * Math.PI * 2;
-  const dashOffset = dashArray - (dashArray * percentage) / 100;
 
   return (
     <div>
@@ -24,10 +22,12 @@ export default function CircleProgressBar({ percentage, time }) {
           strokeWidth="15px"
           r={radius}
           className="circle-progress"
+          pathLength="1"
+          strokeDasharray="1"
           style={{
-            strokeDasharray: dashArray,
-            strokeDashoffset: dashOffset,
+            transition: "stroke-dashoffset linear 15ms",
           }}
+          strokeDashoffset={1 - percentage}
           transform={`rotate(-90 ${circleWidth / 2} ${circleWidth / 2})`}
         />
         <text

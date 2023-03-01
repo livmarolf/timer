@@ -9,14 +9,14 @@ export default function Settings() {
       <input
         type="range"
         min={1}
-        max={120}
+        max={60}
         value={settingsInfo.workDuration}
         onChange={(e) => settingsInfo.setWorkDuration(e.target.value)}
       />
       <input
         type="range"
         min={1}
-        max={120}
+        max={60}
         value={settingsInfo.breakDuration}
         onChange={(e) => settingsInfo.setBreakDuration(e.target.value)}
       />
