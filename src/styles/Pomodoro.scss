@@ -1,0 +1,71 @@
+.pomodoro {
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border-radius: 50%;
+  border: none;
+  outline: none;
+  color: inherit;
+  font-family: inherit;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.1s ease-in-out;
+
+  --pomodoro-background-color: #1e2227;
+
+  &.work {
+    --pomodoro-color: #71c265;
+  }
+  &.break {
+    --pomodoro-color: #e5c07b;
+  }
+  &.paused {
+    --pomodoro-color: #6b6e76;
+  }
+
+  &.paused,
+  &.initial {
+    ~ .time-input {
+      opacity: 1;
+    }
+  }
+
+  &:hover {
+    background: #2c313c;
+  }
+
+  > * {
+    grid-area: 1 / 1;
+  }
+
+  .controls {
+    display: grid;
+    grid-template: auto auto / 1fr;
+    gap: 4px;
+
+    .mode {
+      color: #6b6e76;
+      font-size: 18px;
+      text-transform: lowercase;
+    }
+
+    .time {
+      font-size: 24px;
+    }
+
+    .state {
+      color: #a8abb3;
+      font-size: 18px;
+    }
+  }
+
+  .paused {
+    color: #6b6e76;
+    animation: blink 1s steps(1) infinite;
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+  }
+}

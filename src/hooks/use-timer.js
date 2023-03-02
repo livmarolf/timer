@@ -1,91 +1,104 @@
-import { useEffect, useRef } from "react";
-import { useForceRerender } from "./use-force-rerender";
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useWatcher } from './useWatcher'
 
 export const TimerMode = {
-    WORK: "work",
-    BREAK: "break",
+  WORK: 'work',
+  BREAK: 'break',
 }
 
 export const TimerState = {
-    INITIAL: "initial",
-    PAUSED: "paused",
-    RUNNING: "running",
+  INITIAL: 'initial',
+  PAUSED: 'paused',
+  RUNNING: 'running',
+  UPDATED: 'updated',
 }
 
-const Duration = {
-    /*  WORK: 45 * 60 * 1000, // 45 minutes
-     BREAK: 15 * 60 * 1000, // 15 minutes */
-    [TimerMode.WORK]: 10 * 1000,
-    [TimerMode.BREAK]: 5 * 1000,
+export const Duration = {
+  [TimerMode.WORK]: 45 * 60 * 1000, // 45 minutes
+  [TimerMode.BREAK]: 15 * 60 * 1000, // 15 minutes
 }
 
-export const useTimer = () => {
-    /*
-      Forcing a rerender is generally not a good idea, but in this case it's
-      the easiest way to update the timer.
+export const useTimer = (onUpdate, workDuration, breakDuration) => {
+  const startTime = useRef(0)
+  const duration = useRef(Duration[TimerMode.WORK])
+  const elapsedTime = useRef(0)
+  const rafId = useRef()
 
-      Ideally, we wouldn't use react's update mechanism to drive our animation. Instead,
-      we could update the svg directly, bypassing the need for a rerender, or we could
-      render the timer using a canvas element.
-    */
-    const forceRerender = useForceRerender();
+  const [mode, setMode] = useState(TimerMode.WORK)
+  const [timerState, setTimerState] = useState(TimerState.INITIAL)
 
-    const startTime = useRef(0);
-    const elapsedTime = useRef(0);
-    const duration = useRef(Duration[TimerMode.WORK]);
-    const mode = useRef(TimerMode.WORK);
-    const timerState = useRef(TimerState.INITIAL);
-    const rafId = useRef();
+  const resetTimer = useCallback(
+    (nextMode) => {
+      duration.current =
+        nextMode === TimerMode.WORK
+          ? workDuration ?? Duration[TimerMode.WORK]
+          : breakDuration ?? Duration[TimerMode.BREAK]
+      startTime.current = Date.now()
+      elapsedTime.current = 0
 
-    const updateTimer = () => {
-        rafId.current = requestAnimationFrame(updateTimer)
+      setMode(nextMode)
+    },
+    [workDuration, breakDuration],
+  )
 
-        if (timerState.current !== TimerState.RUNNING) return;
+  useWatcher(
+    (updatedKey) => {
+      if (updatedKey === 'workDuration' && mode === TimerMode.WORK) {
+        resetTimer(TimerMode.WORK)
+        setTimerState(TimerState.UPDATED)
+        onUpdate(0, duration.current)
+      }
+      if (updatedKey === 'breakDuration' && mode === TimerMode.BREAK) {
+        resetTimer(TimerMode.BREAK)
+        setTimerState(TimerState.UPDATED)
+        onUpdate(0, duration.current)
+      }
+    },
+    { workDuration, breakDuration },
+    [workDuration, breakDuration, resetTimer, mode],
+  )
 
+  const updateTimer = useCallback(() => {
+    rafId.current = requestAnimationFrame(updateTimer)
 
-        const updatedElapsedTime = Date.now() - startTime.current;
+    if (timerState !== TimerState.RUNNING) return
 
-        if (updatedElapsedTime >= duration.current) {
-            mode.current = (mode.current === TimerMode.WORK ? TimerMode.BREAK : TimerMode.WORK);
-            duration.current = Duration[mode.current];
-            startTime.current = (Date.now());
-            elapsedTime.current = 0;
-        } else {
-            elapsedTime.current = updatedElapsedTime;
-        }
+    const updatedElapsedTime = Date.now() - startTime.current
+    if (updatedElapsedTime >= duration.current) {
+      const nextMode =
+        mode === TimerMode.WORK ? TimerMode.BREAK : TimerMode.WORK
 
-        forceRerender();
-    };
-
-    const toggleTimerState = () => {
-        switch (timerState.current) {
-            case TimerState.INITIAL:
-                timerState.current = TimerState.RUNNING;
-                startTime.current = Date.now();
-                break;
-            case TimerState.PAUSED:
-                timerState.current = TimerState.RUNNING;
-                startTime.current = Date.now() - elapsedTime.current;
-                break;
-            case TimerState.RUNNING:
-                timerState.current = TimerState.PAUSED;
-                break;
-            default:
-                throw new Error("Invalid timer state");
-        }
-
-        forceRerender();
-    };
-
-    useEffect(() => {
-        requestAnimationFrame(updateTimer);
-        return () => cancelAnimationFrame(rafId.current)
-    }, []);
-
-    return {
-        progress: elapsedTime.current / duration.current,
-        duration: duration.current,
-        toggleTimerState,
-        timerState: timerState.current,
+      resetTimer(nextMode)
+    } else {
+      elapsedTime.current = updatedElapsedTime
     }
+
+    onUpdate(elapsedTime.current / duration.current, duration.current)
+  }, [onUpdate, mode, timerState, resetTimer])
+
+  useEffect(() => {
+    requestAnimationFrame(updateTimer)
+    return () => cancelAnimationFrame(rafId.current)
+  }, [updateTimer, timerState])
+
+  const toggleTimerState = () => {
+    switch (timerState) {
+      case TimerState.INITIAL:
+        setTimerState(TimerState.RUNNING)
+        startTime.current = Date.now()
+        break
+      case TimerState.PAUSED:
+      case TimerState.UPDATED:
+        setTimerState(TimerState.RUNNING)
+        startTime.current = Date.now() - elapsedTime.current
+        break
+      case TimerState.RUNNING:
+        setTimerState(TimerState.PAUSED)
+        break
+      default:
+        throw new Error('Invalid timer state')
+    }
+  }
+
+  return { mode, timerState, toggleTimerState }
 }

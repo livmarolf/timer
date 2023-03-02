@@ -1,1 +1,20 @@
-@import "CircleProgressBar.scss";
+@import 'Pomodoro.scss';
+@import 'TimeInput.scss';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.App {
+  display: grid;
+  grid-template: 1fr / 1fr 1fr 1fr;
+  grid-template-areas: 'time-input-work pomodoro time-input-break';
+  place-items: center;
+  min-height: 100vh;
+  // set the background color to a dark blueish gray
+  background-color: #23272e;
+  color: #e7e7e7;
+  font-family: monospace;
+}

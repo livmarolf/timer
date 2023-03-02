@@ -1,49 +1,50 @@
-const leadingZero = (n) => (n < 10 ? `0${n}` : n);
+import { forwardRef } from 'react'
 
-export default function CircleProgressBar({ duration, progress }) {
-  const radius = 85;
-  const circleWidth = "200";
+const CircleProgressBar = forwardRef(
+  (
+    {
+      diameter = 200,
+      strokeWidth = 15,
+      color = 'var(--pomodoro-color)',
+      backgroundColor = 'var(--pomodoro-background-color)',
+    },
+    ref,
+  ) => {
+    const radiusWithoutStroke = (diameter - strokeWidth) / 2
+    const radius = diameter / 2
 
-  const remainingTime = duration * (1 - progress) / 1000;
-  const minutes = leadingZero(Math.floor(remainingTime / 60));
-  const seconds = leadingZero(Math.ceil(remainingTime % 60));
-  const formatterTime = `${minutes}:${seconds}`;
-
-  return (
-    <div>
+    return (
       <svg
-        width={circleWidth}
-        height={circleWidth}
-        viewBox={`0 0 ${circleWidth} ${circleWidth}`}
+        width={diameter}
+        height={diameter}
+        viewBox={`0 0 ${diameter} ${diameter}`}
       >
         <circle
-          cx={circleWidth / 2}
-          cy={circleWidth / 2}
-          strokeWidth="15px"
-          r={radius}
-          className="circle-background"
+          cx={radius}
+          cy={radius}
+          r={radiusWithoutStroke}
+          fill="none"
+          stroke={backgroundColor}
+          strokeWidth={`${strokeWidth}px`}
         />
         <circle
-          cx={circleWidth / 2}
-          cy={circleWidth / 2}
-          strokeWidth="15px"
-          r={radius}
-          className="circle-progress"
+          ref={ref}
+          cx={radius}
+          cy={radius}
+          r={radiusWithoutStroke}
           pathLength="1"
+          fill="none"
+          stroke={color}
+          strokeWidth={`${strokeWidth}px`}
           strokeDasharray="1"
-          strokeDashoffset={progress}
-          transform={`rotate(-90 ${circleWidth / 2} ${circleWidth / 2})`}
+          strokeDashoffset="0"
+          strokeLinecap="round"
+          transform={`rotate(-90 ${radius} ${radius})`}
+          style={{ transition: 'stroke 0.25s ease-in-out' }}
         />
-        <text
-          x="50%"
-          y="50%"
-          dy="0.3em"
-          textAnchor="middle"
-          className="circle-text"
-        >
-          {formatterTime}
-        </text>
       </svg>
-    </div>
-  );
-}
+    )
+  },
+)
+
+export default CircleProgressBar

@@ -1,0 +1,20 @@
+.time-input {
+  opacity: 0;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  font-size: 20px;
+  background: #1e2227;
+  padding: 4px 8px;
+  border-radius: 4px;
+
+  input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: inherit;
+    font-family: inherit;
+    width: 4ch;
+    text-align: center;
+  }
+}
